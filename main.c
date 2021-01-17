@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include "main.h"
+
 
 #define NUM_LETTERS ((int)26)
 #define ASCI 97
