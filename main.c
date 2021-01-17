@@ -6,6 +6,7 @@
 
 #define NUM_LETTERS ((int)26)
 #define ASCI 97
+
 /**
  * a struct for node in the tree  
  **/
@@ -55,9 +56,11 @@ void freeDinamicMem(root *node)
     }
     free(node);
 }
+
 /**
  * get all the word and char and insert to hear place in the tree 
  **/
+
 void insertText(root *head)
 {
     root *treeHead = head;
@@ -75,6 +78,7 @@ void insertText(root *head)
                 {
                     printf("dinamic memory create is failed\n");
                     freeDinamicMem(head);
+                    free(newNode);
                     exit(1);
                 }
                 curr->children[c - ASCI] = newNode;
@@ -82,32 +86,27 @@ void insertText(root *head)
             }
             curr = curr->children[c - ASCI];
         }
-        else if (c == ' ' || c == '\n' || c == '\t')
+        else if ((c == ' ' || c == '\n' || c == '\t') && curr->letter != '\0')
         {                    // end of word
             curr->count++;   // mark is end of word
             curr = treeHead; // start a new word getiing
         }
         c = fgetc(stdin);
     }
-    curr->count++;
+    if (curr->letter != '\0')
+    {
+        curr->count++;
+    }
 }
+
 /** 
 *   print all the word by alphabet up
 **/
-void printTreeUp(root *headTree, root *node, char *word, int strLen)
+
+void printTreeUp(root *headTree, root *node, char *prevWord)
 {
-    strLen += 1;
-    // save prev word up to hear
-    char *prevWord = (char *)malloc(strlen(word));
-    if (prevWord == NULL)
-    {
-        freeDinamicMem(headTree);
-        printf("dinamic memory create is failed\n");
-        exit(1);
-    }
-    strcpy(prevWord, word);
-    // rellaoc for the new word
-    word = realloc(word, strLen);
+    // create the new word with the current letter
+    char *word = (char *)malloc(strlen(prevWord)+1);
     if (word == NULL)
     {
         freeDinamicMem(headTree);
@@ -115,7 +114,8 @@ void printTreeUp(root *headTree, root *node, char *word, int strLen)
         printf("dinamic memory create is failed\n");
         exit(1);
     }
-    strncat(word, &node->letter, strLen);
+    strcpy(word,prevWord);
+    strncat(word, &node->letter, 1);
 
     if (node->count > 0)
     {
@@ -126,74 +126,66 @@ void printTreeUp(root *headTree, root *node, char *word, int strLen)
     {
         if (node->children[i] != NULL)
         {
-            printTreeUp(headTree, node->children[i], word, strLen);
+            printTreeUp(headTree, node->children[i], word);
         }
     }
-    strcpy(word, prevWord);
-    free(prevWord);
+    free(word);
 }
 
 /** 
 *   print all the word by alphabet down
 **/
-void printTreeDown(root *headTree, root *node, char *word, int strLen)
-{
-    strLen += 1;
-    // save prev word up to hear
-    char *prevWord = (char *)malloc(strlen(word)); 
-    if (prevWord == NULL)
-    {
-        freeDinamicMem(headTree);
-        printf("dinamic memory create is failed\n");
-        exit(1);
-    }
-    strcpy(prevWord, word);
 
-    // rellaoc for the new word
-    word = realloc(word, strLen);
+void printTreeDown(root *headTree, root *node, char *prevWord)
+{
+    // create the new word with the current letter
+    char *word = (char *)malloc(strlen(prevWord)+1);
     if (word == NULL)
     {
-        freeDinamicMem(headTree);
-        free(word);
         printf("dinamic memory create is failed\n");
+        freeDinamicMem(headTree);
+        free(prevWord);
+        free(word);
         exit(1);
     }
-    strncat(word, &node->letter, strLen);
+    strcpy(word, prevWord);
+    strncat(word, &node->letter, 1);
+
     for (int i = NUM_LETTERS - 1; i >= 0; i--)
     {
         if (node->children[i] != NULL)
         {
-            printTreeDown(headTree, node->children[i], word, strLen);
+            printTreeDown(headTree, node->children[i], word);
         }
     }
     if (node->count > 0)
     {
         printf("%s %ld\n", word, node->count);
     }
-    strcpy(word, prevWord);
-    free(prevWord);
+    free(word);
 }
+
+/**
+ *  main progrem
+ **/
 
 int main(int argc, char **argv)
 {
-    root *rootHeadTree = getNewTreeNode('\0'); // this is the truie root
+    root *rootHeadTree = getNewTreeNode('\0'); // this is the tree root
     insertText(rootHeadTree);
-    printf("\n");
     char *word = (char *)malloc(sizeof(char));
     word[0] = '\0';
     if (word != NULL)
     {
 
-        if (argc > 1)
+        if (argc > 1 && strcmp(argv[1], "r") == 0)
         {
-            if (strcmp(argv[1], "r") == 0)
-            {
-                printTreeDown(rootHeadTree, rootHeadTree, word, strlen(word));
-            }
+                printTreeDown(rootHeadTree, rootHeadTree, word);
+            
         }
         else
         {
-            printTreeUp(rootHeadTree, rootHeadTree, word, strlen(word));
+            printTreeUp(rootHeadTree, rootHeadTree, word);
         }
     }
     else
